@@ -1,0 +1,36 @@
+# =====================================================================
+# Piggycat — Netlify configuration
+# ---------------------------------------------------------------------
+# This is a static site + serverless functions. There is NO build step:
+# the repository root is published as-is and index.html is the app.
+#
+# Environment variables to set in the Netlify dashboard
+# (Site settings → Environment variables) — used ONLY by the
+# serverless functions in netlify/functions, never by the browser:
+#
+#   SUPABASE_URL               your Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY  Supabase service role key (SECRET —
+#                              never put this in config.js or any
+#                              frontend file; it bypasses RLS)
+#
+# The public Supabase URL + anon key go in config.js instead.
+# =====================================================================
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  # No build command: `command` is intentionally omitted.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # CSP notes: 'unsafe-inline' is required because the original app
+    # uses inline <script>/<style> and inline event handlers.
+    # jsdelivr serves supabase-js, Google Fonts serves the typefaces,
+    # and connect-src allows Supabase REST/Auth (+ realtime websockets)
+    # and same-origin Netlify Function calls.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'"

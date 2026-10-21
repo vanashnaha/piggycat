@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>"/>
+<title>Piggycat — Your Lifetime Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet">
+<!-- Piggycat production: Supabase config + client (see config.js / README.md) -->
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#fff8f0;--card:#fff;--card2:#fff3e2;--ink:#2b2118;--muted:#7a6a5e;--line:#f0ddd0;--pink:#e88aa0;--pink2:#f9c5d1;--mustard:#e9b44c;--grey:#8a9a94;--sage:#7fb069;--accent:#e07a4a;--radius:20px;--shadow:0 8px 28px rgba(90,50,20,.09)}
+@media(prefers-color-scheme:dark){:root{--bg:#1e1915;--card:#2a2320;--card2:#332a26;--ink:#fdf3e7;--muted:#c9b8a8;--line:#443830;--shadow:0 8px 28px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif}
+a{color:var(--accent)}button{font:inherit;cursor:pointer}
+.wrap{max-width:1020px;margin:0 auto;padding:18px 16px 48px}
+.topbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.logo{font-family:Fraunces,serif;font-size:32px;line-height:1}.logo span{color:var(--accent)}
+.pill{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--card);border:1px solid var(--line);padding:8px 11px;border-radius:999px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:16px}
+@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.stage{background:radial-gradient(circle at 50% 20%, #fff 0%, var(--card2) 58%, #ffe4c7 100%);text-align:center;position:relative;overflow:hidden}
+@media(prefers-color-scheme:dark){.stage{background:radial-gradient(circle at 50% 20%, #3a2e28 0%, #2a2320 70%)}}
+.bubble{background:#fff;color:#2b2118;border-radius:16px;padding:12px 14px;font-weight:700;max-width:460px;margin:0 auto 8px;position:relative;border:1px solid #f0ddd0}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+.petname{font-size:28px;font-weight:900;margin:6px 0 2px}.sub{color:var(--muted);font-weight:700;font-size:14px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px}.stat b{font-size:13px}.bar{height:10px;background:#eee;border-radius:999px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;border-radius:999px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.act{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:13px 8px;font-weight:900}.act small{display:block;font-weight:700;color:var(--muted);font-size:12px;margin-top:2px}.act:active{transform:scale(.98)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 12px}.tab{border:1px solid var(--line);background:var(--card);padding:10px 14px;border-radius:999px;font-weight:900}.tab.active{background:var(--ink);color:var(--bg)}
+.panel{display:none}.panel.active{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+h2{font-family:Fraunces,serif;margin:4px 0 8px;font-size:24px}h3{margin:16px 0 8px}
+input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.btn{background:var(--accent);color:#fff;border:0;padding:12px 16px;border-radius:999px;font-weight:900}.btn.secondary{background:var(--ink);color:var(--bg)}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.chat{height:300px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:6px 0}.msg{max-width:86%;padding:10px 12px;border-radius:16px;font-weight:600;line-height:1.45}.msg.you{align-self:flex-end;background:var(--accent);color:#fff}.msg.pet{align-self:flex-start;background:var(--card2);border:1px solid var(--line)}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}.sw{width:42px;height:42px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}.sw.sel{box-shadow:0 0 0 3px var(--accent)}
+.coatgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}.coat{border:1px solid var(--line);border-radius:16px;padding:12px;background:var(--bg)}.dots{display:flex;gap:5px;margin:8px 0}.dot{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.1)}
+.tier{font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;border-radius:999px;background:#eee;color:#333;display:inline-block}
+.gene{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.notice{background:#fff7cc;color:#5c4a00;border:1px solid #f0d98a;padding:12px 14px;border-radius:14px;font-weight:700;font-size:14px;line-height:1.5}
+@media(prefers-color-scheme:dark){.notice{background:#3a331f;color:#ffeaa0}}
+.small{font-size:13px;color:var(--muted);line-height:1.6;font-weight:600}.trait{margin:10px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#222;color:#fff;padding:12px 16px;border-radius:999px;font-weight:800;display:none;z-index:20;max-width:92vw;text-align:center}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+code{word-break:break-all;background:var(--bg);padding:2px 5px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div><div class="logo">Piggy<span>cat</span></div><div class="small">One Piggycat. One person. For life. • Netlify-ready static edition</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill" id="dayPill">Day 1</span><span class="pill" id="stagePill">Baby</span><span class="pill" id="bondPill">Bond Lv 1</span></div>
+  </div>
+
+  <!-- Account: Supabase Auth gate (same card style as the rest of the app).
+       When Supabase is not configured in config.js, this card reports
+       local/offline mode and the game below runs exactly as before. -->
+  <section class="card" id="accountCard" style="margin-top:14px">
+    <h2 style="margin-top:0">🔐 Account</h2>
+    <p class="small" id="authStatus">Checking account status…</p>
+    <div id="authSignedOut">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="authEmailInput" type="email" placeholder="Email" autocomplete="email" style="flex:1;min-width:200px"/>
+        <input id="authPassInput" type="password" placeholder="Password" autocomplete="current-password" style="flex:1;min-width:160px"/>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn" onclick="PiggycatAuth.signUp()">Sign up</button>
+        <button class="btn secondary" onclick="PiggycatAuth.logIn()">Log in</button>
+        <button class="btn ghost" onclick="PiggycatAuth.magic()">Email me a magic link</button>
+      </div>
+      <p class="small">One account = one Piggycat, bonded to you for life. Signing in saves her to your account so she follows you across devices.</p>
+    </div>
+    <div id="authSignedIn" style="display:none">
+      <p class="small">Signed in as <b id="authEmailShow">—</b></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn secondary" onclick="PiggycatAuth.syncNow()">☁️ Sync now</button>
+        <button class="btn ghost" onclick="PiggycatAuth.logOut()">Log out</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="notice" id="saveNotice" style="margin-top:14px">💾 <strong>This version saves locally in your browser.</strong> Your Piggycat, memories, personality, wardrobe and randomize cooldown live in this browser on this device (localStorage). Use <strong>Save &amp; Backup</strong> below to export a save file/code — that’s how you move her to another browser or keep her safe if browser data is cleared. No account, no server, no backend calls.</div>
+
+  <div class="hero">
+    <section class="card stage">
+      <div class="bubble" id="bubble">*sniff sniff* …you smell like my person. Hi! I'm your Piggycat.</div>
+      <!-- Piggycat SVG - colours driven by current coat -->
+      <svg id="petSvg" viewBox="0 0 360 300" width="100%" style="max-width:420px;display:block;margin:0 auto" role="img" aria-label="Piggycat — chonky pig-cat with mismatched ears, pig snout, whiskers and pink paw pads">
+        <!-- tail -->
+        <path d="M28 185 Q5 165 22 145" stroke="var(--base)" stroke-width="18" fill="none" stroke-linecap="round"/><circle cx="22" cy="143" r="11" fill="var(--tail)"/>
+        <!-- ears -->
+        <path d="M92 72 L72 22 L128 38 Z" fill="var(--earL)"/><path d="M98 62 L88 36 L116 44 Z" fill="#f9c5d1"/>
+        <path d="M268 72 L288 22 L232 38 Z" fill="var(--earR)"/><path d="M262 62 L272 36 L244 44 Z" fill="#f9c5d1"/>
+        <!-- body + head as one chonky shape -->
+        <ellipse cx="180" cy="175" rx="138" ry="102" fill="var(--base)"/>
+        <circle cx="180" cy="118" r="92" fill="var(--base)"/>
+        <!-- patches -->
+        <ellipse cx="108" cy="82" rx="34" ry="28" fill="var(--patch)" opacity=".9"/>
+        <ellipse cx="262" cy="196" rx="42" ry="30" fill="var(--patch2)" opacity=".95"/>
+        <ellipse cx="238" cy="62" rx="22" ry="16" fill="var(--patch2)" opacity=".9"/>
+        <!-- snout -->
+        <ellipse cx="180" cy="148" rx="52" ry="36" fill="#fff" opacity=".55"/>
+        <ellipse cx="180" cy="140" rx="26" ry="16" fill="var(--pad)"/>
+        <circle cx="172" cy="140" r="4" fill="#8a4a5a"/><circle cx="188" cy="140" r="4" fill="#8a4a5a"/>
+        <path d="M168 168 Q180 176 192 168" stroke="#5a4038" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- eyes -->
+        <g><circle cx="118" cy="112" r="18" fill="var(--eye)"/><circle cx="124" cy="106" r="6" fill="#fff"/><path d="M100 100 L88 94 M102 108 L88 106" stroke="#222" stroke-width="3" stroke-linecap="round"/></g>
+        <g><circle cx="242" cy="112" r="18" fill="var(--eye)"/><circle cx="248" cy="106" r="6" fill="#fff"/><path d="M260 100 L272 94 M258 108 L272 106" stroke="#222" stroke-width="3" stroke-linecap="round"/></g>
+        <!-- whiskers -->
+        <g stroke="#7a6a5e" stroke-width="2" stroke-linecap="round"><path d="M118 148 L84 142 M118 158 L86 160 M242 148 L276 142 M242 158 L274 160"/></g>
+        <!-- feet / pads -->
+        <ellipse cx="118" cy="272" rx="34" ry="16" fill="var(--base)"/><ellipse cx="118" cy="272" rx="18" ry="8" fill="var(--pad)"/>
+        <ellipse cx="242" cy="272" rx="34" ry="16" fill="var(--base)"/><ellipse cx="242" cy="272" rx="18" ry="8" fill="var(--pad)"/>
+      </svg>
+      <div class="petname" id="petNameDisplay">Piggycat</div>
+      <div class="sub" id="petIdLine">ID loading… • Bonded to you only • Identity never trades</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+        <input id="nameInput" style="max-width:210px" placeholder="Name your Piggycat" maxlength="24"/>
+        <button class="btn secondary" onclick="renamePet()">Set name</button>
+      </div>
+      <p class="small">Chonky round off-white body • pig snout with pink nose • cat whiskers • mismatched ears (grey / mustard, pink inside) • grey + mustard patches • short tail with yellow tip • pink paw pads • big black eyes with eyelashes — exactly as in your plush photos. Her colours change only when her coat does.</p>
+    </section>
+
+    <section class="card">
+      <h2>Needs &amp; bond</h2>
+      <p class="small">Needs decay with real elapsed time — even while you’re away — just like a Tamagotchi. Caring for her grows your bond and shapes her personality, like a Creatures 2 Norn learning from you.</p>
+      <div class="stats" id="needsBox"></div>
+      <div class="kv"><span>Bond</span><b id="bondText">—</b></div>
+      <div class="kv"><span>Life stage</span><b id="lifeText">—</b></div>
+      <div class="kv"><span>Days together</span><b id="daysText">—</b></div>
+      <div class="kv"><span>Total interactions</span><b id="interText">—</b></div>
+      <div class="actions">
+        <button class="act" onclick="doAction('feed')">🍚 Feed<small>+ Tummy</small></button>
+        <button class="act" onclick="doAction('snack')">🍓 Snack<small>+ Tummy, + Mood</small></button>
+        <button class="act" onclick="doAction('play')">🧶 Play<small>+ Mood, − Energy</small></button>
+        <button class="act" onclick="doAction('pet')">🤲 Pet<small>+ Mood, + Affection</small></button>
+        <button class="act" onclick="doAction('nap')">🌙 Nap<small>+ Energy</small></button>
+        <button class="act" onclick="doAction('clean')">🛁 Clean<small>+ Fluff</small></button>
+      </div>
+      <h3>Personality — she learns who she is</h3>
+      <div id="traitsBox"></div>
+      <h3>Milestones</h3>
+      <div id="milesBox" class="small"></div>
+    </section>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="talk" onclick="showTab('talk')">💬 Talk &amp; Learn</button>
+    <button class="tab" data-tab="coats" onclick="showTab('coats')">🧬 Coats &amp; Genetics</button>
+    <button class="tab" data-tab="memory" onclick="showTab('memory')">🧠 Memory</button>
+    <button class="tab" data-tab="save" onclick="showTab('save')">💾 Save &amp; Backup — Netlify</button>
+  </div>
+
+  <section id="panel-talk" class="panel active card">
+    <h2>Talk to Piggycat</h2>
+    <p class="small">She remembers what you teach her. Try: <em>“My name is Jaclyn”</em> • <em>“My favourite food is sushi”</em> • <em>“I live in Toronto”</em> • <em>“I like rainy days”</em> • <em>“What’s my name?”</em> • <em>“What do you know about me?”</em> Memories appear in the Memory tab and she’ll use them in later chats.</p>
+    <div class="chat" id="chatBox"></div>
+    <div style="display:flex;gap:8px"><input id="chatInput" placeholder="Talk to Piggycat…" onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn" onclick="sendChat()">Send</button></div>
+  </section>
+
+  <section id="panel-coats" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Genome — permanent</h2>
+        <p class="small">Her identity genome never changes and never trades. The visible coat is derived from it. Starting genome is the original plush.</p>
+        <div style="font-size:20px;font-weight:900;letter-spacing:.04em;text-align:center;padding:12px;background:var(--card2);border-radius:12px" id="genomeCode">—</div>
+        <div id="geneList"></div>
+        <h3>Current coat</h3><div id="currentCoat" class="small"></div>
+      </div>
+      <div class="card">
+        <h2>Coats, wardrobe &amp; trading</h2>
+        <p class="small"><strong>Tiers:</strong> Standard → Uncommon → Rare → Epic → Legendary → Super Rare. Standard base coats you customise yourself. Super Rare coats are totally random — colours outside normal genetics — each with a unique Coat ID, and tradeable by code. <strong>Only the coat trades. Piggycat herself never does.</strong></p>
+        <h3>Customise a Standard base coat</h3>
+        <div class="swatches" id="palette"></div>
+        <button class="btn secondary" style="margin-top:10px" onclick="applyCustom()">Apply as Standard coat</button>
+        <h3>Randomize coat — once a week</h3>
+        <p class="small" id="randInfo">—</p>
+        <button class="btn" id="randBtn" onclick="randomizeCoat()">🎲 Randomize Coat</button>
+        <h3>Wardrobe</h3><div class="coatgrid" id="wardrobe"></div>
+        <h3>Trade a coat by code (coat only)</h3>
+        <textarea id="tradeIn" rows="3" placeholder="Paste a PC-COAT-… code from a friend"></textarea>
+        <button class="btn secondary" style="margin-top:8px" onclick="importCoat()">Import coat code</button>
+        <p class="small">Export is on each tradeable coat card (Rare and above). Standard / Uncommon coats can’t be exported — that refusal is intentional.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-memory" class="panel card">
+    <h2>What Piggycat knows about you</h2>
+    <p class="small">Everything she has learned from your conversations. Remove anything you don’t want her to keep — she’ll forget it straight away.</p>
+    <div id="memoryList"></div>
+    <h3>Your story together</h3><div id="logBox" class="small"></div>
+  </section>
+
+  <section id="panel-save" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Export your lifetime Piggycat</h2>
+        <p class="small">Downloads a <code>piggycat-save.json</code> file and creates a copyable save code. Keep it somewhere safe — it <em>is</em> your Piggycat backup. Anyone with the code can restore that Piggycat in their browser, so treat it like a house key.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportSaveFile()">⬇️ Download save file</button><button class="btn secondary" onclick="exportSaveCode()">Copy save code</button></div>
+        <textarea id="saveCodeOut" rows="4" style="margin-top:10px" placeholder="Your PC-SAVE-… code will appear here" readonly></textarea>
+        <h3>Hosting this file on Netlify</h3>
+        <p class="small">This page is a single self-contained HTML file with no backend. To host it: go to Netlify → <em>Add new site → Deploy manually</em>, drag this <code>index.html</code> (in a folder, or zipped) onto the drop zone — done. Every visitor gets their <em>own</em> Piggycat in their own browser; saves don’t sync between people or devices unless they export/import above. Re-deploying a new file does not wipe a visitor’s Piggycat, because it lives in their browser, not on Netlify.</p>
+      </div>
+      <div class="card">
+        <h2>Import / restore a Piggycat</h2>
+        <p class="small">Paste a <code>PC-SAVE-…</code> code, or load a <code>piggycat-save.json</code> file. This replaces the Piggycat currently in this browser — export the current one first if you want to keep her.</p>
+        <textarea id="saveCodeIn" rows="5" placeholder="Paste PC-SAVE-… code here"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" onclick="importSaveCode()">Restore from code</button><label class="btn ghost" style="display:inline-block">Load .json file<input type="file" accept=".json,application/json" style="display:none" onchange="importSaveFile(event)"/></label></div>
+        <h3>Start again</h3>
+        <p class="small">Removes the Piggycat stored in <em>this browser only</em> so a fresh adoption can happen. Export first if she matters to you.</p>
+        <button class="btn ghost" onclick="resetAll()">Reset this browser’s Piggycat</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="small" style="text-align:center;margin-top:20px">Piggycat Netlify-Ready Version • Static single-file app • Saves locally in your browser • Export regularly to back up your lifetime companion.</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var KEY='piggycat_netlify_v1';
+var PALETTE=[{n:'Warm Cream',c:'#f7f1e3'},{n:'Snow White',c:'#ffffff'},{n:'Peach Sorbet',c:'#ffe8d6'},{n:'Rose Milk',c:'#ffd6dd'},{n:'Mint Cream',c:'#d8f3dc'},{n:'Sky Milk',c:'#d0ebff'},{n:'Butter',c:'#fff3b0'},{n:'Stone Grey',c:'#dee2e6'},{n:'Honey',c:'#e9b44c'},{n:'Cocoa',c:'#d4a373'}];
+var PATCHES=['#8a9a94','#e9b44c','#e88aa0','#7fb069','#74c0fc','#b197fc','#ffa94d','#868e96'];
+var TIERS=['Standard','Uncommon','Rare','Epic','Legendary','Super Rare'];
+var selBase=PALETTE[0];
+
+function uid(p){return p+'-'+Math.random().toString(36).slice(2,8).toUpperCase()+'-'+Date.now().toString(36).toUpperCase()}
+function clamp(v){return Math.max(0,Math.min(100,Math.round(v)))}
+function daysBetween(a,b){return Math.floor((b-a)/86400000)}
+function fmtDate(ts){return new Date(ts).toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},3200)}
+
+function originalGenome(){return[
+ {locus:'BASE',name:'Base coat',a1:'Wc',a2:'Wc',trait:'Warm Cream'},
+ {locus:'PATCH',name:'Patch colour',a1:'Gy',a2:'Mu',trait:'Grey + Mustard'},
+ {locus:'PATTERN',name:'Patch pattern',a1:'St',a2:'St',trait:'Side spots'},
+ {locus:'EAR-L',name:'Left ear',a1:'Gy',a2:'Pk',trait:'Grey, pink inside'},
+ {locus:'EAR-R',name:'Right ear',a1:'Mu',a2:'Pk',trait:'Mustard, pink inside'},
+ {locus:'TAIL',name:'Tail tip',a1:'Yw',a2:'Yw',trait:'Yellow tip'},
+ {locus:'EYES',name:'Eyes',a1:'Kb',a2:'Kb',trait:'Kohl Black, lashed'},
+ {locus:'PADS',name:'Nose & paw pads',a1:'Pm',a2:'Pm',trait:'Pink Mauve'}]}
+function originalCoat(){return{id:'COAT-ORIGINAL',name:'Original Plush',tier:'Standard',base:'#f7f1e3',patch:'#8a9a94',patch2:'#e9b44c',earL:'#8a9a94',earR:'#e9b44c',tail:'#e9b44c',eye:'#1a1a1a',pad:'#e88aa0',source:'Original plush',tradeable:false,createdAt:Date.now()}}
+
+function freshState(){var now=Date.now();var c=originalCoat();return{
+ id:uid('PC'),petName:'Piggycat',adoptedAt:now,lastTick:now,
+ needs:{tummy:78,mood:80,energy:82,fluff:85},bondXP:0,interactions:0,
+ personality:{Playfulness:22,Curiosity:28,Affection:30,Independence:18,Mischief:15},
+ memories:[],chat:[{role:'pet',text:"*waddles in, snout first* Hi! I'm your Piggycat — part pig, part cat, all yours. Tell me your name so I can remember you forever."}],
+ genome:originalGenome(),currentCoatId:c.id,wardrobe:[c],lastRandomizeAt:0,
+ milestones:[],log:[{ts:now,text:'Adopted — bonded for life.'}],ownerName:''}}
+
+var S;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} if(window.__pcScheduleSync){try{window.__pcScheduleSync()}catch(e){}}}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var parsed=JSON.parse(r);/* sanitizeState is defined later in source order? No — function declarations hoist, and sanitize helpers are function declarations, so safe */ var clean=(typeof sanitizeState==='function')?sanitizeState(parsed):null;if(clean){S=clean;return}}}catch(e){} S=freshState();save()}
+function applyDecay(){var now=Date.now();var hrs=(now-S.lastTick)/3600000;if(hrs>0.02){S.needs.tummy=clamp(S.needs.tummy-6*hrs);S.needs.mood=clamp(S.needs.mood-4*hrs);S.needs.energy=clamp(S.needs.energy-3*hrs);S.needs.fluff=clamp(S.needs.fluff-2*hrs);S.lastTick=now}}
+function currentCoat(){for(var i=0;i<S.wardrobe.length;i++)if(S.wardrobe[i].id===S.currentCoatId)return S.wardrobe[i];return S.wardrobe[0]}
+function bondLevel(){return Math.floor(Math.sqrt(S.bondXP/18))+1}
+function bondName(){var l=bondLevel();return l>=10?'Lifetime Partner':l>=7?'Soul Bond':l>=5?'Best Friends':l>=3?'Trusted Friend':l>=2?'Curious Companion':'New Bond'}
+function lifeStage(){var d=daysBetween(S.adoptedAt,Date.now());return d>=100?'Elder Companion':d>=21?'Adult':d>=7?'Young':d>=3?'Cub':'Baby'}
+function addMile(m){if(S.milestones.indexOf(m)===-1){S.milestones.push(m);S.log.unshift({ts:Date.now(),text:'Milestone: '+m})}}
+function say(t){document.getElementById('bubble').textContent=t}
+function grow(trait,amt){S.personality[trait]=clamp(S.personality[trait]+amt)}
+
+function render(){
+ applyDecay();
+ var c=currentCoat(),svg=document.getElementById('petSvg');
+ svg.style.setProperty('--base',c.base);svg.style.setProperty('--patch',c.patch);svg.style.setProperty('--patch2',c.patch2);svg.style.setProperty('--earL',c.earL);svg.style.setProperty('--earR',c.earR);svg.style.setProperty('--tail',c.tail);svg.style.setProperty('--eye',c.eye);svg.style.setProperty('--pad',c.pad);
+ document.getElementById('petNameDisplay').textContent=S.petName;
+ document.getElementById('petIdLine').textContent='ID '+S.id+' • Adopted '+fmtDate(S.adoptedAt)+' • Bonded to '+(S.ownerName||'you')+' only';
+ var days=daysBetween(S.adoptedAt,Date.now())+1;
+ document.getElementById('dayPill').textContent='Day '+days;
+ document.getElementById('stagePill').textContent=lifeStage();
+ document.getElementById('bondPill').textContent='Bond Lv '+bondLevel()+' • '+bondName();
+ document.getElementById('bondText').textContent='Level '+bondLevel()+' — '+bondName()+' ('+S.bondXP+' XP)';
+ document.getElementById('lifeText').textContent=lifeStage();
+ document.getElementById('daysText').textContent=days+' day'+(days===1?'':'s');
+ document.getElementById('interText').textContent=S.interactions;
+ var needs=[['Tummy',S.needs.tummy,'#e07a4a'],['Mood',S.needs.mood,'#e88aa0'],['Energy',S.needs.energy,'#e9b44c'],['Fluff',S.needs.fluff,'#7fb069']];
+ document.getElementById('needsBox').innerHTML=needs.map(function(n){return '<div class="stat"><b>'+n[0]+' — '+n[1]+'%</b><div class="bar"><i style="width:'+n[1]+'%;background:'+n[2]+'"></i></div></div>'}).join('');
+ document.getElementById('traitsBox').innerHTML=Object.keys(S.personality).map(function(k){return '<div class="trait"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800"><span>'+k+'</span><span>'+S.personality[k]+'</span></div><div class="bar"><i style="width:'+S.personality[k]+'%;background:#8a9a94"></i></div></div>'}).join('');
+ document.getElementById('milesBox').innerHTML=S.milestones.length?S.milestones.map(function(m){return '✓ '+escapeHtml(m)}).join('<br>'):'No milestones yet — feed, play and talk to earn your first ones.';
+ document.getElementById('genomeCode').textContent=S.genome.map(function(g){return g.a1+g.a2}).join(' · ');
+ document.getElementById('geneList').innerHTML=S.genome.map(function(g){return '<div class="gene"><span><b>'+escapeHtml(g.locus)+'</b> — '+escapeHtml(g.name)+'</span><span><code>'+escapeHtml(g.a1)+'/'+escapeHtml(g.a2)+'</code> '+escapeHtml(g.trait)+'</span></div>'}).join('');
+ document.getElementById('currentCoat').innerHTML='<b>'+escapeHtml(c.name)+'</b> • '+escapeHtml(c.tier)+' • ID '+escapeHtml(c.id)+'<br>Base '+escapeHtml(c.base)+' • Patches '+escapeHtml(c.patch)+' / '+escapeHtml(c.patch2)+' • Ears '+escapeHtml(c.earL)+' / '+escapeHtml(c.earR);
+ // randomize
+ var next=S.lastRandomizeAt?S.lastRandomizeAt+7*86400000:0, can=!S.lastRandomizeAt||Date.now()>=next;
+ document.getElementById('randBtn').disabled=!can;
+ document.getElementById('randInfo').textContent=can?'Your weekly roll is ready. Tiers are weighted — Super Rare is about 2 in 100 rolls and is totally random.':('Next roll: '+fmtDate(next)+' — once every 7 days, saved in this browser.');
+ // wardrobe
+ document.getElementById('wardrobe').innerHTML=S.wardrobe.map(function(w){var eq=w.id===S.currentCoatId;var wid=cleanId(w.id,'');return '<div class="coat"><span class="tier">'+escapeHtml(w.tier)+'</span><div style="font-weight:900;margin-top:6px">'+escapeHtml(w.name)+'</div><div class="dots"><span class="dot" style="background:'+cleanColor(w.base,'#f7f1e3')+'"></span><span class="dot" style="background:'+cleanColor(w.patch,'#8a9a94')+'"></span><span class="dot" style="background:'+cleanColor(w.patch2,'#e9b44c')+'"></span><span class="dot" style="background:'+cleanColor(w.pad,'#e88aa0')+'"></span></div><div class="small">'+escapeHtml(w.id)+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn ghost" '+(eq?'disabled':'')+' onclick="equipCoat(\''+wid+'\')">'+(eq?'Wearing':'Equip')+'</button>'+(w.tradeable?'<button class="btn ghost" onclick="exportCoat(\''+wid+'\')">Export code</button>':'')+'</div></div>'}).join('');
+ // palette
+ document.getElementById('palette').innerHTML=PALETTE.map(function(p,i){return '<button class="sw'+(selBase.c===p.c?' sel':'')+'" title="'+p.n+'" style="background:'+p.c+'" onclick="pickBase('+i+')"></button>'}).join('')+'<div class="small" style="width:100%">Selected: '+selBase.n+' '+selBase.c+'</div>';
+ // chat
+ var cb=document.getElementById('chatBox');cb.innerHTML=S.chat.map(function(m){return '<div class="msg '+(m.role==='you'?'you':'pet')+'">'+escapeHtml(m.text)+'</div>'}).join('');cb.scrollTop=cb.scrollHeight;
+ // memory
+ document.getElementById('memoryList').innerHTML=S.memories.length?S.memories.map(function(m){return '<div class="kv"><span><b>'+escapeHtml(m.label)+':</b> '+escapeHtml(m.value)+'<br><span class="small">Learned '+fmtDate(m.learnedAt)+'</span></span><button class="btn ghost" onclick="forgetMem(\''+cleanId(m.id,'')+'\')">Forget</button></div>'}).join(''):'<p class="small">Nothing learned yet — talk to her above and teach her your name and favourites.</p>';
+ document.getElementById('logBox').innerHTML=S.log.slice(0,14).map(function(l){return fmtDate(l.ts)+' — '+escapeHtml(l.text)}).join('<br>');
+ save();
+}
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function cleanColor(v,d){return (typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v.trim()))?v.trim():d}
+function cleanId(v,d){return (typeof v==='string'&&/^[A-Za-z0-9\-_]{3,40}$/.test(v))?v:d}
+function cleanTxt(v,d,max){if(typeof v!=='string')return d;var s=v.replace(/[<>"'`]/g,'').slice(0,max||60);return s||d}
+function cleanNum(v,d,min,max){var n=Number(v);return isFinite(n)?Math.max(min,Math.min(max,n)):d}
+function sanitizeCoat(c){if(!c||typeof c!=='object')return null;var tier=TIERS.indexOf(c.tier)>-1?c.tier:'Standard';return{id:cleanId(c.id,uid('COAT')),name:cleanTxt(c.name,'Coat',60),tier:tier,base:cleanColor(c.base,'#f7f1e3'),patch:cleanColor(c.patch,'#8a9a94'),patch2:cleanColor(c.patch2,'#e9b44c'),earL:cleanColor(c.earL,'#8a9a94'),earR:cleanColor(c.earR,'#e9b44c'),tail:cleanColor(c.tail,'#e9b44c'),eye:cleanColor(c.eye,'#1a1a1a'),pad:cleanColor(c.pad,'#e88aa0'),source:cleanTxt(c.source||'Imported','Imported',40),tradeable:['Rare','Epic','Legendary','Super Rare'].indexOf(tier)>-1,createdAt:cleanNum(c.createdAt,Date.now(),0,Date.now()+86400000)}}
+function sanitizeState(o){if(!o||typeof o!=='object')return null;var base=freshState();var ward=[];if(Array.isArray(o.wardrobe))o.wardrobe.slice(0,60).forEach(function(w){var sc=sanitizeCoat(w);if(sc)ward.push(sc)});if(!ward.length)ward=base.wardrobe;var cur=cleanId(o.currentCoatId,ward[0].id);if(!ward.some(function(w){return w.id===cur}))cur=ward[0].id;var genome=base.genome;if(Array.isArray(o.genome)&&o.genome.length===8)genome=o.genome.map(function(g,i){return{locus:cleanTxt(g.locus,base.genome[i].locus,12),name:cleanTxt(g.name,base.genome[i].name,30),a1:cleanTxt(g.a1,base.genome[i].a1,4),a2:cleanTxt(g.a2,base.genome[i].a2,4),trait:cleanTxt(g.trait,base.genome[i].trait,40)}});var mem=[];if(Array.isArray(o.memories))o.memories.slice(0,80).forEach(function(m){if(m&&typeof m==='object')mem.push({id:cleanId(m.id,uid('MEM')),label:cleanTxt(m.label,'Fact',40),value:cleanTxt(m.value,'',80),type:'fact',learnedAt:cleanNum(m.learnedAt,Date.now(),0,Date.now())})});var chat=[];if(Array.isArray(o.chat))o.chat.slice(-80).forEach(function(m){if(m&&typeof m.text==='string')chat.push({role:m.role==='you'?'you':'pet',text:m.text.slice(0,500)})});if(!chat.length)chat=base.chat;var pers={};Object.keys(base.personality).forEach(function(k){pers[k]=cleanNum(o.personality&&o.personality[k],base.personality[k],0,100)});var needs={};['tummy','mood','energy','fluff'].forEach(function(k){needs[k]=cleanNum(o.needs&&o.needs[k],base.needs[k],0,100)});return{id:cleanId(o.id,base.id),petName:cleanTxt(o.petName,'Piggycat',24),adoptedAt:cleanNum(o.adoptedAt,base.adoptedAt,0,Date.now()),lastTick:cleanNum(o.lastTick,Date.now(),0,Date.now()),needs:needs,bondXP:cleanNum(o.bondXP,0,0,100000),interactions:Math.floor(cleanNum(o.interactions,0,0,100000)),personality:pers,memories:mem,chat:chat,genome:genome,currentCoatId:cur,wardrobe:ward,lastRandomizeAt:cleanNum(o.lastRandomizeAt,0,0,Date.now()),milestones:Array.isArray(o.milestones)?o.milestones.filter(function(x){return typeof x==='string'}).map(function(x){return x.replace(/[<>"'`]/g,'').slice(0,60)}).slice(0,40):[],log:Array.isArray(o.log)?o.log.slice(0,30).map(function(l){return{ts:cleanNum(l.ts,Date.now(),0,Date.now()),text:String(l.text||'').slice(0,120)}}):base.log,ownerName:cleanTxt(o.ownerName||'','',40)}}
+
+function doAction(a){
+ var msgs={feed:'*happy snuffling* Mmm! Full tummy, happy piggycat.',snack:'*tiny excited hops* A snack! You remembered I love snacks.',play:'*chases the yarn, tail wagging* Again! Again!',pet:'*leans in, purring-snorting* That’s my favourite spot…',nap:'*curls into a round loaf* Zzz… dreamt about you.',clean:'*shakes off sparkles* So fluffy! So fresh!'};
+ if(a==='feed'){S.needs.tummy=clamp(S.needs.tummy+32);S.needs.mood=clamp(S.needs.mood+4);grow('Affection',1);addMile('First feed')}
+ if(a==='snack'){S.needs.tummy=clamp(S.needs.tummy+12);S.needs.mood=clamp(S.needs.mood+10)}
+ if(a==='play'){S.needs.mood=clamp(S.needs.mood+24);S.needs.energy=clamp(S.needs.energy-10);grow('Playfulness',3);grow('Mischief',1);addMile('First playtime')}
+ if(a==='pet'){S.needs.mood=clamp(S.needs.mood+14);grow('Affection',3)}
+ if(a==='nap'){S.needs.energy=clamp(S.needs.energy+38);S.needs.mood=clamp(S.needs.mood+4)}
+ if(a==='clean'){S.needs.fluff=clamp(S.needs.fluff+36);S.needs.mood=clamp(S.needs.mood+5);addMile('First bath')}
+ S.bondXP+=4;S.interactions++;if(S.interactions>=10)addMile('10 interactions together');if(S.interactions>=50)addMile('50 interactions together');
+ S.log.unshift({ts:Date.now(),text:'Care: '+a});say(msgs[a]);render();
+}
+function renamePet(){var v=document.getElementById('nameInput').value.trim();if(!v)return toast('Type a name first');S.petName=v;S.log.unshift({ts:Date.now(),text:'Named '+v});say('I love my name — '+v+'! That’s me, forever.');render();toast('Name saved in this browser')}
+
+function learn(label,value,type){var ex=null;for(var i=0;i<S.memories.length;i++)if(S.memories[i].label===label)ex=S.memories[i];if(ex){ex.value=value;ex.learnedAt=Date.now()}else S.memories.push({id:uid('MEM'),label:label,value:value,type:type||'fact',learnedAt:Date.now()});if(label==='Your name'){S.ownerName=value}}
+function forgetMem(id){S.memories=S.memories.filter(function(m){return m.id!==id});render();toast('Forgotten')}
+function memVal(label){for(var i=0;i<S.memories.length;i++)if(S.memories[i].label===label)return S.memories[i].value;return null}
+
+function sendChat(){
+ var inp=document.getElementById('chatInput');var text=inp.value.trim();if(!text)return;inp.value='';
+ S.chat.push({role:'you',text:text});S.interactions++;S.bondXP+=3;grow('Curiosity',1);
+ var low=text.toLowerCase(),reply=null,m;
+ if(m=text.match(/my name is ([A-Za-z][A-Za-z '\-]{1,30})/i)){learn('Your name',m[1].trim());reply='I’ll remember forever — you’re '+m[1].trim()+'! *tucks that into my heart*';addMile('Learned your name')}
+ else if(m=text.match(/my favou?rite food is ([^.!?]{2,40})/i)){learn('Favourite food',m[1].trim());reply='Got it! Your favourite food is '+m[1].trim()+'. I’ll remind you when you’re hungry, promise.'}
+ else if(m=text.match(/i (?:live|am from) (?:in )?([^.!?]{2,40})/i)){learn('Where you live',m[1].trim());reply='Noted — home is '+m[1].trim()+'. Wherever you are, that’s where I want to be.'}
+ else if(m=text.match(/i (?:like|love) ([^.!?]{2,40})/i)){learn('Something you like',m[1].trim());S.memories.length;reply='Ooh, you like '+m[1].trim()+' — I’m learning your world, one favourite at a time.';grow('Curiosity',2)}
+ else if(/what('s| is) my name/.test(low)){var n=memVal('Your name');reply=n?('You’re '+n+'! I could never forget.'):'You haven’t told me yet — say “My name is …” and I’ll keep it forever.'}
+ else if(/what do you know/.test(low)||/what.*remember/.test(low)){reply=S.memories.length?('Here’s what I keep in my heart: '+S.memories.map(function(x){return x.label+' — '+x.value}).join('; ')+'.'):'Not much yet — teach me! Tell me your name and your favourites.'}
+ else if(/favou?rite food/.test(low)){var f=memVal('Favourite food');reply=f?('Your favourite food is '+f+'!'):'Tell me with “My favourite food is …” and I’ll remember it.'}
+ else if(/hello|hi\b|hey/.test(low)){var n2=memVal('Your name');reply='Hi'+(n2?' '+n2:'')+'! *snout boop* I waited right here for you.'}
+ else if(/love you/.test(low)){grow('Affection',3);reply='I love you too — in piggycat, that means I’d share my last snack. Almost.'}
+ else{var pool=['*tilts head, one grey ear up, one mustard ear down* Tell me more — I’m filing that under “things about my person.”','That’s new! My curiosity whiskers are tingling.','*happy snort* I like learning how your day works. What else should I remember?','I’m listening with both kinds of ears — cat for secrets, pig for snacks.'];reply=pool[Math.floor(Math.random()*pool.length)]}
+ S.chat.push({role:'pet',text:reply});say(reply);render();
+}
+
+/* Coats */
+function pickBase(i){selBase=PALETTE[i];render()}
+function applyCustom(){var c={id:uid('COAT'),name:selBase.n+' Custom',tier:'Standard',base:selBase.c,patch:PATCHES[Math.floor(Math.random()*2)],patch2:'#e9b44c',earL:'#8a9a94',earR:'#e9b44c',tail:'#e9b44c',eye:'#1a1a1a',pad:'#e88aa0',source:'Custom Standard',tradeable:false,createdAt:Date.now()};S.wardrobe.unshift(c);S.currentCoatId=c.id;S.log.unshift({ts:Date.now(),text:'Custom Standard coat: '+c.name});say('New look, same me! Do you like my '+c.name+' coat?');render()}
+function equipCoat(id){S.currentCoatId=id;var c=currentCoat();say('Ta-da! Now wearing '+c.name+' — still your same Piggycat underneath.');render()}
+function randomizeCoat(){
+ var now=Date.now();if(S.lastRandomizeAt&&now<S.lastRandomizeAt+7*86400000)return toast('Weekly roll already used — next roll '+fmtDate(S.lastRandomizeAt+7*86400000));
+ var r=Math.random()*100,tier=r<2?'Super Rare':r<7?'Legendary':r<15?'Epic':r<30?'Rare':r<55?'Uncommon':'Standard';
+ var sup=tier==='Super Rare';
+ function rnd(arr){return arr[Math.floor(Math.random()*arr.length)]}
+ var all=PALETTE.map(function(p){return p.c}).concat(['#c77dff','#06d6a0','#ef476f','#118ab2','#073b4c','#ff8fab']);
+ var c={id:uid('COAT'),name:(sup?'✦ Mirage ':tier+' ')+rnd(['Cloud','Berry','Meadow','Dusk','Honey','Pudding','Comet','Petal'])+' Coat',tier:tier,base:sup?rnd(all):rnd(PALETTE).c,patch:rnd(PATCHES.concat(all)),patch2:rnd(PATCHES.concat(all)),earL:rnd(PATCHES),earR:rnd(PATCHES),tail:rnd(PATCHES),eye:'#1a1a1a',pad:rnd(['#e88aa0','#f9c5d1','#e07a4a']),source:sup?'Weekly roll — totally random Super Rare':'Weekly roll',tradeable:['Rare','Epic','Legendary','Super Rare'].indexOf(tier)>-1,createdAt:now};
+ S.wardrobe.unshift(c);S.currentCoatId=c.id;S.lastRandomizeAt=now;addMile('First coat randomize');if(sup)addMile('Rolled a Super Rare coat!');
+ S.log.unshift({ts:now,text:'Randomized coat: '+c.name+' ('+tier+')'});say(sup?'✨ SUPER RARE! The stars hiccuped and gave me a totally random coat — '+c.name+'! It even has its own ID for trading.':'Your weekly roll gave me a '+tier+' coat — '+c.name+'!');render();toast(tier+' coat added to wardrobe')
+}
+function exportCoat(id){var c=null;for(var i=0;i<S.wardrobe.length;i++)if(S.wardrobe[i].id===id)c=S.wardrobe[i];if(!c||!c.tradeable)return toast('That coat is not tradeable');var code='PC-COAT-'+btoa(unescape(encodeURIComponent(JSON.stringify(c))));copyText(code);toast('Coat code copied — coat only, Piggycat stays yours')}
+function importCoat(){var v=document.getElementById('tradeIn').value.trim();try{if(v.indexOf('PC-COAT-')!==0)throw 0;var raw=JSON.parse(decodeURIComponent(escape(atob(v.slice(8)))));var c=sanitizeCoat(raw);if(!c)throw 0;if(S.wardrobe.some(function(w){return w.id===c.id}))return toast('You already have that coat');S.wardrobe.unshift(c);S.currentCoatId=c.id;document.getElementById('tradeIn').value='';say('Ooh — a traded coat arrived: '+c.name+'! Trying it on… same me, new fluff.');render();toast('Coat imported')}catch(e){toast('That doesn’t look like a valid PC-COAT code')}}
+
+/* Save export / import */
+function saveJson(){return JSON.stringify(S,null,2)}
+function exportSaveFile(){var blob=new Blob([saveJson()],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='piggycat-save.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},2000);document.getElementById('saveCodeOut').value='PC-SAVE-'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));toast('Save file downloaded')}
+function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t);else{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}}
+function exportSaveCode(){var code='PC-SAVE-'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));document.getElementById('saveCodeOut').value=code;copyText(code);toast('Save code copied — keep it safe')}
+function restore(obj){var clean=sanitizeState(obj);if(!clean)throw 0;S=clean;applyDecay();save();render();say('I remember everything — it’s really me, I’m home!');toast('Piggycat restored')}
+function importSaveCode(){var v=document.getElementById('saveCodeIn').value.trim();try{if(v.indexOf('PC-SAVE-')===0)v=v.slice(8);restore(JSON.parse(decodeURIComponent(escape(atob(v)))))}catch(e){toast('Invalid save code')}}
+function importSaveFile(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{restore(JSON.parse(r.result))}catch(e){toast('That file is not a Piggycat save')}};r.readAsText(f)}
+function resetAll(){if(!confirmReset())return;try{localStorage.removeItem(KEY)}catch(e){} S=freshState();save();render();say('A new Piggycat is waiting to meet you.')}
+var _cf=false;function confirmReset(){if(_cf)return true;_cf=true;toast('Tap Reset again to confirm — this removes this browser’s Piggycat');setTimeout(function(){_cf=false},4000);return false}
+
+function showTab(t){document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)});document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});document.getElementById('panel-'+t).classList.add('active')}
+
+load();applyDecay();render();
+setInterval(function(){applyDecay();render()},60000);
+</script>
+<script>
+/* =====================================================================
+   Piggycat cloud sync module (production / Netlify + Supabase)
+   ---------------------------------------------------------------------
+   Deliberately isolated from the original single-file game above:
+   the game still runs 100% locally (localStorage) exactly as before.
+   This module only ADDS:
+     1. Supabase Auth (email/password, magic link, log out)
+     2. Cloud load/save of the one-per-user pet (pets.state jsonb),
+        with localStorage kept as cache / offline fallback
+     3. Server-authoritative weekly coat roll via a Netlify Function
+        (only when signed in; otherwise the original local roll runs)
+     4. Online Super Rare coat trading via a Netlify Function
+        (a small extra panel injected into Coats & Genetics)
+   If config.js still holds placeholder values, NOTHING here activates
+   and the app clearly reports local/offline mode. Never hard-breaks.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var cfg = window.PIGGYCAT_CONFIG || {};
+  var configured = !!(
+    cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY &&
+    String(cfg.SUPABASE_URL).indexOf('YOUR_') !== 0 &&
+    String(cfg.SUPABASE_ANON_KEY).indexOf('YOUR_') !== 0 &&
+    window.supabase && typeof window.supabase.createClient === 'function'
+  );
+  var client = null, currentUser = null, suppressSync = false, syncTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(msg) { var el = $('authStatus'); if (el) el.textContent = msg; }
+  function authEmail() { var el = $('authEmailInput'); return el ? el.value.trim() : ''; }
+  function authPassword() { var el = $('authPassInput'); return el ? el.value : ''; }
+
+  function setNotice() {
+    var n = $('saveNotice');
+    if (!n) return;
+    if (configured && currentUser) {
+      n.innerHTML = '☁️ <strong>Signed in — cloud mode.</strong> Your Piggycat is saved to your account (one Piggycat per user) and also cached in this browser for offline use. She is bonded to <strong>' +
+        (currentUser.email ? currentUser.email.replace(/</g, '&lt;') : 'you') + '</strong> only.';
+    } else if (configured) {
+      n.innerHTML = '💾 <strong>Local mode for now.</strong> Sign in above to save your Piggycat to your account. Until then she saves in this browser only (localStorage) — use <strong>Save &amp; Backup</strong> below to export her.';
+    }
+    /* if not configured, the original local-save notice text stays as-is */
+  }
+
+  function renderAuth() {
+    var out = $('authSignedOut'), inn = $('authSignedIn'), em = $('authEmailShow');
+    if (currentUser) {
+      if (out) out.style.display = 'none';
+      if (inn) inn.style.display = '';
+      if (em) em.textContent = currentUser.email || currentUser.id;
+    } else {
+      if (out) out.style.display = '';
+      if (inn) inn.style.display = 'none';
+    }
+    setNotice();
+  }
+
+  /* ---- debounced cloud save; hooked from the game's original save() ---- */
+  window.__pcScheduleSync = function () {
+    if (!client || !currentUser || suppressSync) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushState, 1200);
+  };
+
+  async function pushState() {
+    if (!client || !currentUser) return;
+    try {
+      var payload = {
+        user_id: currentUser.id,
+        name: S.petName,
+        genome: S.genome,
+        state: S,
+        last_roll_at: S.lastRandomizeAt ? new Date(S.lastRandomizeAt).toISOString() : null,
+        updated_at: new Date().toISOString()
+      };
+      var res = await client.from('pets').upsert(payload, { onConflict: 'user_id' });
+      if (res.error) { setStatus('Signed in as ' + currentUser.email + ' — cloud save failed: ' + res.error.message); return; }
+      setStatus('Signed in as ' + currentUser.email + ' — Piggycat saved to your account ✔');
+    } catch (e) { /* offline: local cache still holds everything */ }
+  }
+
+  /* ---- load the signed-in user's one Piggycat, or adopt the local one ---- */
+  async function pullState() {
+    if (!client || !currentUser) return;
+    try {
+      var res = await client.from('pets').select('state').eq('user_id', currentUser.id).maybeSingle();
+      if (res.error) { setStatus('Signed in — could not load your Piggycat: ' + res.error.message); return; }
+      if (res.data && res.data.state) {
+        var clean = (typeof sanitizeState === 'function') ? sanitizeState(res.data.state) : null;
+        if (clean) {
+          suppressSync = true;
+          S = clean;
+          try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+          suppressSync = false;
+          if (typeof render === 'function') render();
+          setStatus('Signed in as ' + currentUser.email + ' — your Piggycat was loaded from your account ✔');
+          refreshTradeList();
+          return;
+        }
+      }
+      /* No cloud pet yet: adopt the Piggycat currently in this browser.
+         pets.user_id is UNIQUE, so this can only ever create one row. */
+      await pushState();
+    } catch (e) { /* stay on the local pet */ }
+  }
+
+  async function bearer() {
+    if (!client) return null;
+    var s = await client.auth.getSession();
+    return s && s.data && s.data.session ? s.data.session.access_token : null;
+  }
+
+  /* ---- server-authoritative weekly roll (falls back to the local roll) ---- */
+  var originalRandomize = window.randomizeCoat;
+  window.randomizeCoat = async function () {
+    if (!client || !currentUser) return originalRandomize();
+    var token = await bearer();
+    if (!token) return originalRandomize();
+    try {
+      var r = await fetch('/.netlify/functions/roll-coat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: '{}'
+      });
+      var data = await r.json().catch(function () { return {}; });
+      if (!r.ok) { toast(data.error || 'Server roll failed'); return; }
+      var c = (typeof sanitizeCoat === 'function') ? sanitizeCoat(data.coat) : data.coat;
+      if (!c) { toast('Server returned an unreadable coat'); return; }
+      S.wardrobe.unshift(c);
+      S.currentCoatId = c.id;
+      S.lastRandomizeAt = data.last_roll_at ? Date.parse(data.last_roll_at) : Date.now();
+      if (typeof addMile === 'function') { addMile('First coat randomize'); if (c.tier === 'Super Rare') addMile('Rolled a Super Rare coat!'); }
+      S.log.unshift({ ts: Date.now(), text: 'Randomized coat (server roll): ' + c.name + ' (' + c.tier + ')' });
+      say(c.tier === 'Super Rare' ? '✨ SUPER RARE (server roll)! Totally random coat — ' + c.name + '!' : 'Server roll gave me a ' + c.tier + ' coat — ' + c.name + '!');
+      render();
+      toast(c.tier + ' coat added to wardrobe');
+    } catch (e) {
+      toast('Could not reach the roll server — weekly roll NOT used up. Try again when online.');
+    }
+  };
+
+  /* ---- online Super Rare trading panel (injected, same card style) ---- */
+  function refreshTradeList() {
+    var sel = $('tradeCoatSelect');
+    if (!sel) return;
+    var rares = (S && S.wardrobe ? S.wardrobe : []).filter(function (w) { return w.tier === 'Super Rare'; });
+    sel.innerHTML = rares.length
+      ? rares.map(function (w) { return '<option value="' + w.id.replace(/"/g, '') + '">' + String(w.name).replace(/</g, '&lt;') + ' (' + w.id + ')</option>'; }).join('')
+      : '<option value="">No Super Rare coats yet</option>';
+  }
+  function injectTrade() {
+    if ($('onlineTrade')) return;
+    var cards = document.querySelectorAll('#panel-coats .card');
+    if (!cards || cards.length < 2) return;
+    var div = document.createElement('div');
+    div.id = 'onlineTrade';
+    div.innerHTML =
+      '<h3>Online trading — Super Rare coats only</h3>' +
+      '<p class="small">Account-to-account trading through the server. <strong>Only the coat moves — your Piggycat, her identity, memories and bond never transfer.</strong> Requires being signed in.</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><select id="tradeCoatSelect" style="flex:1;min-width:180px"></select>' +
+      '<button class="btn ghost" onclick="PiggycatTrade.refresh()">Refresh list</button>' +
+      '<button class="btn secondary" onclick="PiggycatTrade.create()">List selected for trade</button></div>' +
+      '<textarea id="tradeCodeOut" rows="2" style="margin-top:8px" placeholder="Your trade code will appear here" readonly></textarea>' +
+      '<h3>Redeem a trade code</h3>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="tradeCodeIn" placeholder="Paste a PC-TRADE-… code" style="flex:1;min-width:180px"/>' +
+      '<button class="btn" onclick="PiggycatTrade.redeem()">Redeem coat</button></div>';
+    cards[1].appendChild(div);
+    refreshTradeList();
+  }
+  window.PiggycatTrade = {
+    refresh: refreshTradeList,
+    create: async function () {
+      if (!client || !currentUser) return toast('Sign in first to trade online');
+      var sel = $('tradeCoatSelect'); if (!sel || !sel.value) return toast('No Super Rare coat selected');
+      var coat = null;
+      for (var i = 0; i < S.wardrobe.length; i++) if (S.wardrobe[i].id === sel.value) coat = S.wardrobe[i];
+      if (!coat) return toast('Coat not found in wardrobe');
+      var token = await bearer(); if (!token) return toast('Sign in first');
+      try {
+        var r = await fetch('/.netlify/functions/trade-coat', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ action: 'create', coat_id: coat.id, coat: coat })
+        });
+        var data = await r.json().catch(function () { return {}; });
+        if (!r.ok) return toast(data.error || 'Could not list coat');
+        $('tradeCodeOut').value = data.code;
+        if (navigator.clipboard) navigator.clipboard.writeText(data.code);
+        toast('Trade code created & copied — coat only, Piggycat stays yours');
+      } catch (e) { toast('Trade server unreachable'); }
+    },
+    redeem: async function () {
+      if (!client || !currentUser) return toast('Sign in first to trade online');
+      var code = ($('tradeCodeIn') ? $('tradeCodeIn').value.trim() : '');
+      if (!code) return toast('Paste a trade code first');
+      var token = await bearer(); if (!token) return toast('Sign in first');
+      try {
+        var r = await fetch('/.netlify/functions/trade-coat', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ action: 'redeem', code: code })
+        });
+        var data = await r.json().catch(function () { return {}; });
+        if (!r.ok) return toast(data.error || 'Could not redeem that code');
+        var c = (typeof sanitizeCoat === 'function') ? sanitizeCoat(data.coat) : data.coat;
+        if (!c) return toast('Redeemed, but the coat data was unreadable');
+        if (!S.wardrobe.some(function (w) { return w.id === c.id; })) S.wardrobe.unshift(c);
+        S.currentCoatId = c.id;
+        say('Ooh — a traded Super Rare coat arrived: ' + c.name + '! Same me, new fluff.');
+        render(); refreshTradeList();
+        toast('Super Rare coat redeemed 🎉');
+      } catch (e) { toast('Trade server unreachable'); }
+    }
+  };
+
+  /* ---- auth actions wired to the Account card ---- */
+  function needClient() {
+    if (client) return true;
+    toast(configured ? 'Account system still loading…' : 'Local/offline mode — add your Supabase keys to config.js to enable accounts');
+    setStatus(configured ? 'Account system still loading…' : 'Local/offline mode — Supabase is not configured yet (config.js has placeholder values). Piggycat runs and saves in this browser.');
+    return false;
+  }
+  window.PiggycatAuth = {
+    signUp: async function () {
+      if (!needClient()) return;
+      var email = authEmail(), pw = authPassword();
+      if (!email || !pw) return toast('Enter an email and a password first');
+      var res = await client.auth.signUp({ email: email, password: pw });
+      if (res.error) return setStatus('Sign up failed: ' + res.error.message);
+      setStatus(res.data.session ? 'Account created & signed in ✔' : 'Account created — check your email to confirm, then log in.');
+    },
+    logIn: async function () {
+      if (!needClient()) return;
+      var email = authEmail(), pw = authPassword();
+      if (!email || !pw) return toast('Enter an email and a password first');
+      var res = await client.auth.signInWithPassword({ email: email, password: pw });
+      if (res.error) return setStatus('Log in failed: ' + res.error.message);
+      /* onAuthStateChange below picks the session up and loads the pet */
+    },
+    magic: async function () {
+      if (!needClient()) return;
+      var email = authEmail();
+      if (!email) return toast('Enter your email first');
+      var res = await client.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
+      if (res.error) return setStatus('Magic link failed: ' + res.error.message);
+      setStatus('Magic link sent ✉️ Check your email and click the link to sign in.');
+    },
+    logOut: async function () {
+      if (!needClient()) return;
+      await client.auth.signOut();
+      currentUser = null; renderAuth();
+      setStatus('Logged out. Piggycat is back to saving in this browser only.');
+    },
+    syncNow: async function () {
+      if (!client || !currentUser) return toast('Sign in first');
+      await pushState();
+      toast('Synced to your account ✔');
+    }
+  };
+
+  /* ---- init ---- */
+  injectTrade();
+  if (!configured) {
+    setStatus('Local/offline mode — Supabase is not configured yet (config.js has placeholder values). Piggycat runs exactly as before and saves in this browser.');
+    renderAuth();
+    return;
+  }
+  try {
+    client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  } catch (e) {
+    setStatus('Local/offline mode — Supabase failed to load. Piggycat runs and saves in this browser.');
+    renderAuth();
+    return;
+  }
+  client.auth.getSession().then(function (res) {
+    var session = res && res.data ? res.data.session : null;
+    currentUser = session ? session.user : null;
+    renderAuth();
+    if (currentUser) pullState();
+    else setStatus('Accounts are on. Sign up or log in to save your Piggycat to your account — she still works locally until then.');
+  });
+  client.auth.onAuthStateChange(function (_event, session) {
+    var was = currentUser ? currentUser.id : null;
+    currentUser = session ? session.user : null;
+    renderAuth();
+    if (currentUser && currentUser.id !== was) pullState();
+  });
+})();
+</script>
+
+</body>
+</html>
