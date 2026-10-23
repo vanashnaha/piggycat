@@ -1,0 +1,25 @@
+{
+  "name": "Piggycat Codespace",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "postCreateCommand": "npm install -g netlify-cli && cp -n .env.example .env || true && echo 'Piggycat codespace is ready. Start the app with: netlify dev'",
+  "forwardPorts": [8888],
+  "portsAttributes": {
+    "8888": {
+      "label": "Piggycat app",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.eol": "\n"
+      }
+    }
+  }
+}
